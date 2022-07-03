@@ -1,38 +1,58 @@
-import React, { useEffect, useState } from "react";
+import React, {Component, useState,useEffect} from "react";
+import Weathercard from "./Weathercard";
 import '../styles/App.css';
 
-export default function App(){
-  const [lat, setLat]= useState([]);
-  
-  const [long, setLong]= useState([]);
-  
-  useEffect(()=>{
-    const fetchData= async()=>{
-    
-    navigator.geolocation.getCurrentPosition(function(position){
-      setLat(position.coords.latitude);
-      setLong(position.coords.longitude);
-    });
-    await 
-    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=4721875125989469f55f6f67bccf42ac`)
-    .then(res=>res.json())
-    .then(result => {
-      setData(result)
-      console.log(result);
-    });
-  }
-  fetchData();
+const App = () => {
+  const [searchValue, setSearchValue] = useState("Delhi");
+  const [tempInfo, setTempInfo] = useState({});
 
-  },[lat, long]);
-  return(
-    <div className="App">
-      {(typeof data.main != 'undefined') ? (
-        <weather weatherData={data}/>
+  const getWeatherInfo = async () => {
+    try{
+      let url = `https://api.openweathermap.org/data/2.5/weather?q=${searchValue}&units=metric&appid=eefde8ab9ccbfc5ebdc29c2520f348db`
 
-      ):(
-        <div></div>
-      )}
+      const res = await fetch(url);
+      const data = await res.json();
 
+      const { temp} = data.main;
+      const { main: weathermood } = data.weather[0];
+      const {name} = data;
+      const {country} = data.sys;
+
+        const myNewWeatherInfo = {
+          temp,
+          weathermood,
+          name,
+          country,
+        };
+
+        setTempInfo(myNewWeatherInfo);
+    } catch(error){
+      alert("City not Found ");
+      setSearchValue("");
+      //console.log(error);
+    }
+   };
+
+  useEffect(() => {
+    getWeatherInfo();
+  },[]);
+  return (
+    <>
+    <div className="wrap">
+        <div className="search">
+            <input type="search"
+            placeholder='search...' autoFocus
+            id='search'
+            className='searchTerm' 
+            value={ searchValue} onChange={(e)=>setSearchValue(e.target.value)}  />
+          <button className='searchButton' type='button' onClick={getWeatherInfo}>Search</button>
+        </div>
     </div>
-  );
+   
+      <Weathercard tempInfo={tempInfo}/>
+    </>
+  )
 }
+
+
+export default App;
